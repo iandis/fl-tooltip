@@ -1,5 +1,7 @@
 part of fl_tooltip;
 
+/// The overlay entry produced by [FlTooltipEntry.createEntry].
+/// Use this to dismiss the tooltip.
 class FlTooltipOverlayEntry {
   OverlayEntry? _overlayEntry;
   void dismiss() {
@@ -27,6 +29,13 @@ class FlTooltipEntry extends StatelessWidget {
 
   final VoidCallback onDismissTooltip;
 
+  /// Creates a [FlTooltipOverlayEntry] and inserts it into the overlay.
+  ///
+  /// [animation] can be optionally provided in order to animate the tooltip.
+  ///
+  /// [useRootOverlay] can be optionally provided in order to use the root
+  /// [Overlay] widget. This is the same as passing `rootOverlay: true` to
+  /// [Overlay.of].
   static FlTooltipOverlayEntry showTooltip({
     required FlTooltipTargetKey targetKey,
     required FlTooltipEntryOptions options,

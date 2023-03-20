@@ -1,39 +1,84 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+## FlTooltip
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+Flutter package for showing tooltip using Flutter's Overlay widget.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
+## Getting Started
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+1. Add dependency to `pubspec.yaml`
 
-## Features
-
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  fl_tooltip: <latest-version>
 ```
 
-## Additional information
+2. Import the package
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+import 'package:fl_tooltip/fl_tooltip.dart';
+```
+
+3. Wrap the target widget with `FlTooltip`
+
+```dart
+final FlTooltipKey tooltipKey = FlTooltipKey();
+
+FlTooltip(
+  key: tooltipKey,
+  options: FlTooltipEntryOptions(
+    ...
+  ),
+  content: SomeTooltipContent(),
+  child: SomeWidget(),
+)
+```
+
+4. Show the tooltip
+
+```dart
+void showTooltip() {
+  tooltipKey.currentState?.showTooltip();
+}
+```
+
+## Creating FlTooltipEntry without FlTooltip
+It's possible to show tooltip without using `FlTooltip` widget. This is useful when you want to show tooltip directly from a method, for example, tooltip for tutorials.
+
+In order to do that, we just need to wrap the target widget with `FlTooltipTarget`.
+```dart
+final FlTooltipTargetKey targetKey = FlTooltipTargetKey();
+
+FlTooltipTarget(
+  key: targetKey, // <- this is required
+  child: SomeWidget(),
+)
+
+FlTooltipOverlayEntry? entry;
+void showTooltip() {
+  entry = FlTooltipEntry.showTooltip({
+    targetKey: targetKey,
+    options: FlTooltipEntryOptions(
+      ...
+    ),
+  });
+}
+
+void dismissTooltip() {
+  entry?.dismiss();
+  entry = null;
+}
+```
+
+## Customizing FlTooltip Themes
+`FlTooltipTheme` are customizable via [ThemeExtension](https://api.flutter.dev/flutter/material/ThemeExtension-class.html).
+Example:
+```dart
+MaterialApp(
+  theme: ThemeData(
+    extensions: <ThemeExtension<dynamic>>[
+      FlTooltipTheme(
+        ...
+      ),
+    ],
+  ),
+)
+```
