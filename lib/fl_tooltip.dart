@@ -1,7 +1,2 @@
-library fl_tooltip;
-
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+export 'src/extensions/_extensions.dart';
+export 'src/tooltip/fl_tooltip.dart';
