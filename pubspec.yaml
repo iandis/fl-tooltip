@@ -1,6 +1,6 @@
 name: fl_tooltip
 description: Flutter package for showing tooltip using Flutter's Overlay widget
-version: 0.0.1-alpha.0
+version: 0.0.1
 repository: https://github.com/iandis/fl-tooltip
 issue_tracker: https://github.com/iandis/fl-tooltip/issues
 
