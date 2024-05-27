@@ -3,7 +3,7 @@ part of extensions;
 class RenderBoxPosition with Diagnosticable {
   const RenderBoxPosition._({
     required this.topLeftOffset,
-    required this.rect,
+    required this.centerOffset,
     required this.size,
   });
 
@@ -13,7 +13,7 @@ class RenderBoxPosition with Diagnosticable {
     final Rect rect = offset & size;
     return RenderBoxPosition._(
       topLeftOffset: offset,
-      rect: rect,
+      centerOffset: rect.center,
       size: size,
     );
   }
@@ -29,10 +29,9 @@ class RenderBoxPosition with Diagnosticable {
       -centerOffset.dx + renderBox.size.width / 2,
       -centerOffset.dy + renderBox.size.height / 2,
     );
-
     return RenderBoxPosition._(
       topLeftOffset: topLeftOffset,
-      rect: topLeftOffset & size,
+      centerOffset: centerOffset,
       size: size,
     );
   }
@@ -42,20 +41,19 @@ class RenderBoxPosition with Diagnosticable {
     final Rect rect = offset & size;
     return RenderBoxPosition._(
       topLeftOffset: rect.topLeft,
-      rect: rect,
+      centerOffset: rect.center,
       size: size,
     );
   }
 
   /// Offset to target's top left corner
   final Offset topLeftOffset;
-  final Rect rect;
+  final Offset centerOffset;
   final Size size;
-  Offset get centerOffset => rect.center;
 
   static const RenderBoxPosition zero = RenderBoxPosition._(
     topLeftOffset: Offset.zero,
-    rect: Rect.zero,
+    centerOffset: Offset.zero,
     size: Size.zero,
   );
 
@@ -72,7 +70,7 @@ class RenderBoxPosition with Diagnosticable {
   int get hashCode => Object.hash(
         runtimeType,
         topLeftOffset,
-        rect,
+        centerOffset,
         size,
       );
 
@@ -81,7 +79,7 @@ class RenderBoxPosition with Diagnosticable {
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty<Offset>('topLeftOffset', topLeftOffset))
-      ..add(DiagnosticsProperty<Rect>('rect', rect))
+      ..add(DiagnosticsProperty<Offset>('centerOffset', centerOffset))
       ..add(DiagnosticsProperty<Size>('size', size));
   }
 }
