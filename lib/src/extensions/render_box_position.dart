@@ -50,6 +50,7 @@ class RenderBoxPosition with Diagnosticable {
   final Offset topLeftOffset;
   final Offset centerOffset;
   final Size size;
+  Rect get rect => topLeftOffset & size;
 
   static const RenderBoxPosition zero = RenderBoxPosition._(
     topLeftOffset: Offset.zero,
