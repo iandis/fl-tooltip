@@ -51,9 +51,9 @@ import 'dart:ui';
 import 'package:fl_tooltip/src/extensions/_extensions.dart';
 import 'package:fl_tooltip/src/rendering/_rendering.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
 part 'single_child_tooltip.dart';
 part 'fl_tooltip_target.dart';

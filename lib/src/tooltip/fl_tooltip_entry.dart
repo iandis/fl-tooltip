@@ -83,31 +83,31 @@ class FlTooltipEntry extends StatelessWidget {
         options.useDryLayout ? targetKey.dryBoxPosition : targetKey.boxPosition;
     final RenderBoxPosition boxPosition = position ?? RenderBoxPosition.zero;
 
-    final FlTooltipTheme? flTooltipTheme = Theme.of(context).flTooltipTheme;
+    final FlTooltipThemeData? flTooltipTheme = FlTooltipTheme.maybeOf(context);
 
     final EdgeInsetsGeometry effectiveMargin = options.margin ??
         flTooltipTheme?.margin ??
-        FlTooltipTheme._defaultMargin;
+        FlTooltipThemeData._defaultMargin;
 
     final EdgeInsetsGeometry effectiveContentPadding = options.contentPadding ??
         flTooltipTheme?.contentPadding ??
-        FlTooltipTheme._defaultContentPadding;
+        FlTooltipThemeData._defaultContentPadding;
 
     final Color effectiveBarrierColor = options.barrierColor ??
         flTooltipTheme?.barrierColor ??
-        FlTooltipTheme._defaultBarrierColor;
+        FlTooltipThemeData._defaultBarrierColor;
 
     final Color effectiveBackgroundColor = options.backgroundColor ??
         flTooltipTheme?.backgroundColor ??
-        FlTooltipTheme._defaultBackgroundColor;
+        FlTooltipThemeData._defaultBackgroundColor;
 
     final BorderRadiusGeometry effectiveBorderRadius = options.borderRadius ??
         flTooltipTheme?.borderRadius ??
-        FlTooltipTheme._defaultBorderRadius;
+        FlTooltipThemeData._defaultBorderRadius;
 
     final Shadow effectiveShadow = options.shadow ??
         flTooltipTheme?.shadow ??
-        FlTooltipTheme._defaultShadow;
+        FlTooltipThemeData._defaultShadow;
 
     final TextDirection effectiveTextDirection = options.textDirection ??
         Directionality.maybeOf(context) ??
@@ -115,24 +115,24 @@ class FlTooltipEntry extends StatelessWidget {
 
     final double effectiveElevation = options.elevation ??
         flTooltipTheme?.elevation ??
-        FlTooltipTheme._defaultElevation;
+        FlTooltipThemeData._defaultElevation;
 
     final double effectiveTailLength = options.tailLength ??
         flTooltipTheme?.tailLength ??
-        FlTooltipTheme._defaultTailLength;
+        FlTooltipThemeData._defaultTailLength;
 
     final double effectiveTailBaseWidth = options.tailBaseWidth ??
         flTooltipTheme?.tailBaseWidth ??
-        FlTooltipTheme._defaultTailBaseWidth;
+        FlTooltipThemeData._defaultTailBaseWidth;
 
     final TailBuilder effectiveTailBuilder = options.tailBuilder ??
         flTooltipTheme?.tailBuilder ??
-        FlTooltipTheme.defaultTailBuilder;
+        FlTooltipThemeData.defaultTailBuilder;
 
     final FlTooltipDismissOptions effectiveDismissOptions =
         options.dismissOptions ??
             flTooltipTheme?.dismissOptions ??
-            FlTooltipTheme._defaultDismissOptions;
+            FlTooltipThemeData._defaultDismissOptions;
 
     final Widget contentWidget;
     if (effectiveContentPadding != EdgeInsets.zero) {
@@ -143,11 +143,6 @@ class FlTooltipEntry extends StatelessWidget {
     } else {
       contentWidget = options.content;
     }
-
-    final Material wrappedContent = Material(
-      type: MaterialType.transparency,
-      child: contentWidget,
-    );
 
     Widget content = Stack(
       children: <Widget>[
@@ -191,7 +186,7 @@ class FlTooltipEntry extends StatelessWidget {
             textDirection: effectiveTextDirection,
             shadow: effectiveShadow,
             elevation: effectiveElevation,
-            child: wrappedContent,
+            child: contentWidget,
           ),
         ),
       ],

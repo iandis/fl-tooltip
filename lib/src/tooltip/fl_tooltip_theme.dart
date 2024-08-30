@@ -1,7 +1,67 @@
 part of fl_tooltip;
 
-class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
+class FlTooltipTheme extends StatelessWidget {
   const FlTooltipTheme({
+    super.key,
+    required this.data,
+    required this.child,
+  });
+
+  static FlTooltipThemeData? maybeOf(BuildContext context) {
+    final _FlTooltipInheritedTheme? inheritedTheme =
+        context.dependOnInheritedWidgetOfExactType<_FlTooltipInheritedTheme>();
+    return inheritedTheme?.theme.data;
+  }
+
+  static FlTooltipThemeData of(BuildContext context) {
+    final FlTooltipThemeData? theme = maybeOf(context);
+    assert(theme != null, 'No FlTooltipTheme found in context');
+    return theme!;
+  }
+
+  static FlTooltipThemeData? maybeGet(BuildContext context) {
+    final _FlTooltipInheritedTheme? inheritedTheme =
+        context.getInheritedWidgetOfExactType<_FlTooltipInheritedTheme>();
+    return inheritedTheme?.theme.data;
+  }
+
+  static FlTooltipThemeData get(BuildContext context) {
+    final FlTooltipThemeData? theme = maybeGet(context);
+    assert(theme != null, 'No FlTooltipTheme found in context');
+    return theme!;
+  }
+
+  final FlTooltipThemeData data;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _FlTooltipInheritedTheme(
+      theme: this,
+      child: child,
+    );
+  }
+}
+
+class _FlTooltipInheritedTheme extends InheritedTheme {
+  const _FlTooltipInheritedTheme({
+    required this.theme,
+    required super.child,
+  });
+
+  final FlTooltipTheme theme;
+
+  @override
+  Widget wrap(BuildContext context, Widget child) =>
+      FlTooltipTheme(data: theme.data, child: child);
+
+  @override
+  bool updateShouldNotify(_FlTooltipInheritedTheme oldWidget) =>
+      theme.data != oldWidget.theme.data;
+}
+
+class FlTooltipThemeData {
+  const FlTooltipThemeData({
     this.margin = _defaultMargin,
     this.contentPadding = _defaultContentPadding,
     this.borderRadius = _defaultBorderRadius,
@@ -40,8 +100,12 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
   static const EdgeInsetsGeometry _defaultMargin = EdgeInsets.all(8.0);
   static const EdgeInsetsGeometry _defaultContentPadding = EdgeInsets.zero;
   static const BorderRadiusGeometry _defaultBorderRadius = BorderRadius.zero;
-  static const Color _defaultBarrierColor = Colors.transparent;
-  static const Color _defaultBackgroundColor = Colors.black54;
+
+  /// Transparent color
+  static const Color _defaultBarrierColor = Color(0x00000000);
+
+  /// From material's Colors.black54
+  static const Color _defaultBackgroundColor = Color(0x8A000000);
   static const double _defaultElevation = 4.0;
   static const double _defaultTailLength = 16.0;
   static const double _defaultTailBaseWidth = 32.0;
@@ -50,7 +114,7 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
   static const Shadow _defaultShadow = Shadow(
     offset: Offset.zero,
     blurRadius: 0.0,
-    color: Colors.black,
+    color: Color.fromARGB(255, 0, 0, 0),
   );
   static const FlTooltipDismissOptions _defaultDismissOptions =
       FlTooltipDismissOptions();
@@ -93,8 +157,7 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
       ..close();
   }
 
-  @override
-  FlTooltipTheme copyWith({
+  FlTooltipThemeData copyWith({
     EdgeInsetsGeometry? margin,
     EdgeInsetsGeometry? contentPadding,
     BorderRadiusGeometry? borderRadius,
@@ -108,7 +171,7 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
     TailBuilder? tailBuilder,
     FlTooltipDismissOptions? dismissOptions,
   }) {
-    return FlTooltipTheme(
+    return FlTooltipThemeData(
       margin: margin ?? this.margin,
       contentPadding: contentPadding ?? this.contentPadding,
       borderRadius: borderRadius ?? this.borderRadius,
@@ -124,10 +187,9 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
     );
   }
 
-  @override
-  FlTooltipTheme lerp(covariant FlTooltipTheme? other, double t) {
+  FlTooltipThemeData lerp(covariant FlTooltipThemeData? other, double t) {
     if (other == null) return this;
-    return FlTooltipTheme(
+    return FlTooltipThemeData(
       margin: EdgeInsetsGeometry.lerp(
             margin,
             other.margin,
@@ -178,8 +240,4 @@ class FlTooltipTheme extends ThemeExtension<FlTooltipTheme> {
       dismissOptions: other.dismissOptions,
     );
   }
-}
-
-extension ThemeDataExtensios on ThemeData {
-  FlTooltipTheme? get flTooltipTheme => extension<FlTooltipTheme>();
 }

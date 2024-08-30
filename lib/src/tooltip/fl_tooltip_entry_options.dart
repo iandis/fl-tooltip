@@ -108,8 +108,8 @@ class FlTooltipEntryOptions with Diagnosticable {
   static FlTooltipTransitionsBuilder _effectiveTransitionsBuilderOf(
     BuildContext context,
   ) {
-    return Theme.of(context).flTooltipTheme?.transitionsBuilder ??
-        FlTooltipTheme._defaultTransitionsBuilder;
+    return FlTooltipTheme.maybeOf(context)?.transitionsBuilder ??
+        FlTooltipThemeData._defaultTransitionsBuilder;
   }
 
   @override

@@ -69,16 +69,15 @@ void dismissTooltip() {
 ```
 
 ## Customizing FlTooltip Themes
-`FlTooltipTheme` are customizable via [ThemeExtension](https://api.flutter.dev/flutter/material/ThemeExtension-class.html).
+`FlTooltipTheme` are customizable via wrapping the root widget with [FlTooltipTheme].
 Example:
 ```dart
-MaterialApp(
-  theme: ThemeData(
-    extensions: <ThemeExtension<dynamic>>[
-      FlTooltipTheme(
-        ...
-      ),
-    ],
+FlTooltipTheme(
+  data: FlTooltipThemeData(
+    ...
+  ),
+  child: MaterialApp(
+    ...
   ),
 )
 ```
