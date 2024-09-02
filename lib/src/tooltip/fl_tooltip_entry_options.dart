@@ -16,9 +16,11 @@ class FlTooltipEntryOptions with Diagnosticable {
     this.useDryLayout = true,
     this.alignment = Alignment.center,
     this.direction = AxisDirection.down,
+    this.alternativeDirections = const <AxisDirection>{},
     this.transitionsBuilder,
     this.margin,
     this.contentPadding,
+    this.edgePadding,
     this.position = 0.0,
     this.elevation,
     this.borderRadius,
@@ -43,11 +45,21 @@ class FlTooltipEntryOptions with Diagnosticable {
 
   final AxisDirection direction;
 
+  /// Defines alternatives for [direction] when the tooltip cannot fit its content
+  /// given the constraints of the parent widget. This will fallback to [direction]
+  /// when none of the alternatives can fit.
+  final Set<AxisDirection> alternativeDirections;
+
   final FlTooltipTransitionsBuilder? transitionsBuilder;
 
+  /// The margin applied to the Tooltip, including the container and the tail.
   final EdgeInsetsGeometry? margin;
 
+  /// The padding applied to [content].
   final EdgeInsetsGeometry? contentPadding;
+
+  /// The padding applied to the Tooltip's [BoxConstraints].
+  final EdgeInsetsGeometry? edgePadding;
 
   /// {@template fl_tooltip.FlTooltipEntryOptions.position}
   /// The position of [content] along the tail's axis.
@@ -118,9 +130,11 @@ class FlTooltipEntryOptions with Diagnosticable {
       other is FlTooltipEntryOptions &&
           other.alignment == alignment &&
           other.direction == direction &&
+          setEquals(other.alternativeDirections, alternativeDirections) &&
           other.transitionsBuilder == transitionsBuilder &&
           other.margin == margin &&
           other.contentPadding == contentPadding &&
+          other.edgePadding == edgePadding &&
           other.position == position &&
           other.elevation == elevation &&
           other.borderRadius == borderRadius &&
@@ -140,9 +154,11 @@ class FlTooltipEntryOptions with Diagnosticable {
   int get hashCode => Object.hashAll([
         alignment,
         direction,
+        alternativeDirections,
         transitionsBuilder,
         margin,
         contentPadding,
+        edgePadding,
         position,
         elevation,
         borderRadius,
@@ -165,6 +181,10 @@ class FlTooltipEntryOptions with Diagnosticable {
     properties
       ..add(DiagnosticsProperty<Alignment>('alignment', alignment))
       ..add(DiagnosticsProperty<AxisDirection>('direction', direction))
+      ..add(DiagnosticsProperty<Set<AxisDirection>>(
+        'alternativeDirections',
+        alternativeDirections,
+      ))
       ..add(DiagnosticsProperty<FlTooltipTransitionsBuilder>(
         'transitionsBuilder',
         transitionsBuilder,
@@ -174,6 +194,7 @@ class FlTooltipEntryOptions with Diagnosticable {
         'contentPadding',
         contentPadding,
       ))
+      ..add(DiagnosticsProperty<EdgeInsetsGeometry>('edgePadding', edgePadding))
       ..add(DoubleProperty('position', position))
       ..add(DoubleProperty('elevation', elevation))
       ..add(DiagnosticsProperty<BorderRadiusGeometry>(

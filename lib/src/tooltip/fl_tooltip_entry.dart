@@ -89,6 +89,9 @@ class FlTooltipEntry extends StatelessWidget {
         flTooltipTheme?.margin ??
         FlTooltipThemeData._defaultMargin;
 
+    final EdgeInsetsGeometry effectiveEdgePadding =
+        options.edgePadding ?? flTooltipTheme?.edgePadding ?? EdgeInsets.zero;
+
     final EdgeInsetsGeometry effectiveContentPadding = options.contentPadding ??
         flTooltipTheme?.contentPadding ??
         FlTooltipThemeData._defaultContentPadding;
@@ -144,6 +147,11 @@ class FlTooltipEntry extends StatelessWidget {
       contentWidget = options.content;
     }
 
+    assert(
+      !options.alternativeDirections.contains(options.direction),
+      '`alternativeDirections` must not contain the same direction as `direction`',
+    );
+
     Widget content = Stack(
       children: <Widget>[
         GestureDetector(
@@ -176,7 +184,9 @@ class FlTooltipEntry extends StatelessWidget {
             boxPosition: boxPosition,
             alignment: options.alignment,
             direction: options.direction,
+            alternativeDirections: options.alternativeDirections,
             margin: effectiveMargin,
+            edgePadding: effectiveEdgePadding,
             position: options.position,
             borderRadius: effectiveBorderRadius,
             tailBaseWidth: effectiveTailBaseWidth,

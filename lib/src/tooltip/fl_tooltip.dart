@@ -48,6 +48,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:equatable/equatable.dart';
 import 'package:fl_tooltip/src/extensions/_extensions.dart';
 import 'package:fl_tooltip/src/rendering/_rendering.dart';
 import 'package:flutter/foundation.dart';

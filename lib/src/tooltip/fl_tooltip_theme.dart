@@ -60,10 +60,11 @@ class _FlTooltipInheritedTheme extends InheritedTheme {
       theme.data != oldWidget.theme.data;
 }
 
-class FlTooltipThemeData {
+class FlTooltipThemeData extends Equatable{
   const FlTooltipThemeData({
     this.margin = _defaultMargin,
     this.contentPadding = _defaultContentPadding,
+    this.edgePadding = EdgeInsets.zero,
     this.borderRadius = _defaultBorderRadius,
     this.barrierColor = _defaultBarrierColor,
     this.backgroundColor = _defaultBackgroundColor,
@@ -78,6 +79,7 @@ class FlTooltipThemeData {
 
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry contentPadding;
+  final EdgeInsetsGeometry edgePadding;
   final BorderRadiusGeometry borderRadius;
 
   /// {@template fl_tooltip.FlTooltipTheme.barrierColor}
@@ -160,6 +162,7 @@ class FlTooltipThemeData {
   FlTooltipThemeData copyWith({
     EdgeInsetsGeometry? margin,
     EdgeInsetsGeometry? contentPadding,
+    EdgeInsetsGeometry? edgePadding,
     BorderRadiusGeometry? borderRadius,
     Color? barrierColor,
     Color? backgroundColor,
@@ -174,6 +177,7 @@ class FlTooltipThemeData {
     return FlTooltipThemeData(
       margin: margin ?? this.margin,
       contentPadding: contentPadding ?? this.contentPadding,
+      edgePadding: edgePadding ?? this.edgePadding,
       borderRadius: borderRadius ?? this.borderRadius,
       barrierColor: barrierColor ?? this.barrierColor,
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -202,6 +206,12 @@ class FlTooltipThemeData {
             t,
           ) ??
           _defaultContentPadding,
+      edgePadding: EdgeInsetsGeometry.lerp(
+            edgePadding,
+            other.edgePadding,
+            t,
+          ) ??
+          EdgeInsets.zero,
       borderRadius: BorderRadiusGeometry.lerp(
             borderRadius,
             other.borderRadius,
@@ -240,4 +250,21 @@ class FlTooltipThemeData {
       dismissOptions: other.dismissOptions,
     );
   }
+  
+  @override
+  List<Object?> get props => [
+    margin,
+    contentPadding,
+    edgePadding,
+    borderRadius,
+    barrierColor,
+    backgroundColor,
+    elevation,
+    tailLength,
+    tailBaseWidth,
+    transitionsBuilder,
+    shadow,
+    tailBuilder,
+    dismissOptions,
+  ];
 }
