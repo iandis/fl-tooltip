@@ -522,23 +522,24 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     // TODO: Currently, I don't think this is triggered by an empty child. Dunno
     /// why this is the case or if this is a feature.
     if (!rect.isEmpty && rect.isFinite && !rect.hasNaN) {
-      path
-        ..addRRect(
-          RRect.fromRectAndCorners(
-            rect,
-            topLeft: radius.topLeft,
-            topRight: radius.topRight,
-            bottomLeft: radius.bottomLeft,
-            bottomRight: radius.bottomRight,
-          ),
-        )
-        ..addPath(
+      path.addRRect(
+        RRect.fromRectAndCorners(
+          rect,
+          topLeft: radius.topLeft,
+          topRight: radius.topRight,
+          bottomLeft: radius.bottomLeft,
+          bottomRight: radius.bottomRight,
+        ),
+      );
+      if (tailLength > 0) {
+        path.addPath(
           _paintTail(
             rect: rect,
             radius: radius,
           ),
           Offset.zero,
         );
+      }
 
       // TODO: What do I do about the blurSigma property on shadow?
       context.canvas.drawShadow(
