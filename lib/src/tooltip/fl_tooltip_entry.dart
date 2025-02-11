@@ -96,7 +96,7 @@ class FlTooltipEntry extends StatelessWidget {
         flTooltipTheme?.contentPadding ??
         FlTooltipThemeData._defaultContentPadding;
 
-    final Color effectiveBarrierColor = options.barrierColor ??
+    final Color effectiveBarrierColor = options.barrier?.color ??
         flTooltipTheme?.barrierColor ??
         FlTooltipThemeData._defaultBarrierColor;
 
@@ -152,55 +152,58 @@ class FlTooltipEntry extends StatelessWidget {
       '`alternativeDirections` must not contain the same direction as `direction`',
     );
 
-    Widget content = Stack(
-      children: <Widget>[
-        GestureDetector(
-          behavior: options.barrierDismissible
-              ? HitTestBehavior.translucent
-              : HitTestBehavior.deferToChild,
-          onTap: effectiveDismissOptions.whenBarrierTapped
-              ? onDismissTooltip
-              : null,
-          onHorizontalDragStart:
-              effectiveDismissOptions.whenBarrierScrolledHorizontally
-                  ? (_) => onDismissTooltip()
-                  : null,
-          onVerticalDragStart:
-              effectiveDismissOptions.whenBarrierScrolledVertically
-                  ? (_) => onDismissTooltip()
-                  : null,
-          child: Builder(
-            builder: (BuildContext context) => options.barrierBuilder(
-              context,
-              effectiveBarrierColor,
+    Widget content;
+    if (options.barrier == null) {
+      content = GestureDetector(
+        onTap:
+            effectiveDismissOptions.whenContentTapped ? onDismissTooltip : null,
+        child: _SingleChildTooltip(
+          boxPosition: boxPosition,
+          alignment: options.alignment,
+          direction: options.direction,
+          alternativeDirections: options.alternativeDirections,
+          margin: effectiveMargin,
+          edgePadding: effectiveEdgePadding,
+          position: options.position,
+          borderRadius: effectiveBorderRadius,
+          tailBaseWidth: effectiveTailBaseWidth,
+          tailLength: effectiveTailLength,
+          tailBuilder: effectiveTailBuilder,
+          backgroundColor: effectiveBackgroundColor,
+          textDirection: effectiveTextDirection,
+          shadow: effectiveShadow,
+          elevation: effectiveElevation,
+          child: contentWidget,
+        ),
+      );
+    } else {
+      content = Stack(
+        children: <Widget>[
+          GestureDetector(
+            behavior: options.barrier!.dismissible
+                ? HitTestBehavior.translucent
+                : HitTestBehavior.deferToChild,
+            onTap: effectiveDismissOptions.whenBarrierTapped
+                ? onDismissTooltip
+                : null,
+            onHorizontalDragStart:
+                effectiveDismissOptions.whenBarrierScrolledHorizontally
+                    ? (_) => onDismissTooltip()
+                    : null,
+            onVerticalDragStart:
+                effectiveDismissOptions.whenBarrierScrolledVertically
+                    ? (_) => onDismissTooltip()
+                    : null,
+            child: Builder(
+              builder: (BuildContext context) => options.barrier!.builder(
+                context,
+                effectiveBarrierColor,
+              ),
             ),
           ),
-        ),
-        GestureDetector(
-          onTap: effectiveDismissOptions.whenContentTapped
-              ? onDismissTooltip
-              : null,
-          child: _SingleChildTooltip(
-            boxPosition: boxPosition,
-            alignment: options.alignment,
-            direction: options.direction,
-            alternativeDirections: options.alternativeDirections,
-            margin: effectiveMargin,
-            edgePadding: effectiveEdgePadding,
-            position: options.position,
-            borderRadius: effectiveBorderRadius,
-            tailBaseWidth: effectiveTailBaseWidth,
-            tailLength: effectiveTailLength,
-            tailBuilder: effectiveTailBuilder,
-            backgroundColor: effectiveBackgroundColor,
-            textDirection: effectiveTextDirection,
-            shadow: effectiveShadow,
-            elevation: effectiveElevation,
-            child: contentWidget,
-          ),
-        ),
-      ],
-    );
+        ],
+      );
+    }
 
     final Animation<double>? animation = this.animation;
     if (animation != null) {

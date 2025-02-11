@@ -60,7 +60,7 @@ class _FlTooltipInheritedTheme extends InheritedTheme {
       theme.data != oldWidget.theme.data;
 }
 
-class FlTooltipThemeData extends Equatable{
+class FlTooltipThemeData extends Equatable {
   const FlTooltipThemeData({
     this.margin = _defaultMargin,
     this.contentPadding = _defaultContentPadding,
@@ -250,21 +250,21 @@ class FlTooltipThemeData extends Equatable{
       dismissOptions: other.dismissOptions,
     );
   }
-  
+
   @override
   List<Object?> get props => [
-    margin,
-    contentPadding,
-    edgePadding,
-    borderRadius,
-    barrierColor,
-    backgroundColor,
-    elevation,
-    tailLength,
-    tailBaseWidth,
-    transitionsBuilder,
-    shadow,
-    tailBuilder,
-    dismissOptions,
-  ];
+        margin,
+        contentPadding,
+        edgePadding,
+        borderRadius,
+        barrierColor,
+        backgroundColor,
+        elevation,
+        tailLength,
+        tailBaseWidth,
+        transitionsBuilder,
+        shadow,
+        tailBuilder,
+        dismissOptions,
+      ];
 }

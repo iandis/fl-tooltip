@@ -11,6 +11,7 @@ typedef BarrierBuilder = Widget Function(
   Color barrierColor,
 );
 
+@immutable
 class FlTooltipEntryOptions with Diagnosticable {
   const FlTooltipEntryOptions({
     this.useDryLayout = true,
@@ -27,9 +28,7 @@ class FlTooltipEntryOptions with Diagnosticable {
     this.tailLength,
     this.tailBaseWidth,
     this.tailBuilder,
-    this.barrierColor,
-    this.barrierBuilder = _defaultBarrierBuilder,
-    this.barrierDismissible = true,
+    this.barrier = const FlTooltipEntryBarrier(),
     this.dismissOptions,
     this.backgroundColor,
     this.textDirection,
@@ -83,12 +82,7 @@ class FlTooltipEntryOptions with Diagnosticable {
 
   final TailBuilder? tailBuilder;
 
-  /// {@macro fl_tooltip.FlTooltipTheme.barrierColor}
-  final Color? barrierColor;
-
-  final BarrierBuilder barrierBuilder;
-
-  final bool barrierDismissible;
+  final FlTooltipEntryBarrier? barrier;
 
   final FlTooltipDismissOptions? dismissOptions;
 
@@ -110,18 +104,10 @@ class FlTooltipEntryOptions with Diagnosticable {
   /// but may be placed opposite.
   final Widget content;
 
-  static Widget _defaultBarrierBuilder(BuildContext context, Color skrimColor) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints.expand(),
-      child: ColoredBox(color: skrimColor),
-    );
-  }
-
   static FlTooltipTransitionsBuilder _effectiveTransitionsBuilderOf(
     BuildContext context,
   ) {
-    return FlTooltipTheme.maybeOf(context)?.transitionsBuilder ??
-        FlTooltipThemeData._defaultTransitionsBuilder;
+    return FlTooltipTheme.maybeOf(context)?.transitionsBuilder ?? FlTooltipThemeData._defaultTransitionsBuilder;
   }
 
   @override
@@ -141,9 +127,7 @@ class FlTooltipEntryOptions with Diagnosticable {
           other.tailLength == tailLength &&
           other.tailBaseWidth == tailBaseWidth &&
           other.tailBuilder == tailBuilder &&
-          other.barrierColor == barrierColor &&
-          other.barrierBuilder == barrierBuilder &&
-          other.barrierDismissible == barrierDismissible &&
+          other.barrier == barrier &&
           other.dismissOptions == dismissOptions &&
           other.backgroundColor == backgroundColor &&
           other.textDirection == textDirection &&
@@ -165,9 +149,7 @@ class FlTooltipEntryOptions with Diagnosticable {
         tailLength,
         tailBaseWidth,
         tailBuilder,
-        barrierColor,
-        barrierBuilder,
-        barrierDismissible,
+        barrier,
         dismissOptions,
         backgroundColor,
         textDirection,
@@ -204,17 +186,7 @@ class FlTooltipEntryOptions with Diagnosticable {
       ..add(DoubleProperty('tailLength', tailLength))
       ..add(DoubleProperty('tailBaseWidth', tailBaseWidth))
       ..add(DiagnosticsProperty<TailBuilder>('tailBuilder', tailBuilder))
-      ..add(DiagnosticsProperty<Color>('barrierColor', barrierColor))
-      ..add(DiagnosticsProperty<BarrierBuilder>(
-        'barrierBuilder',
-        barrierBuilder,
-      ))
-      ..add(FlagProperty(
-        'barrierDismissible',
-        value: barrierDismissible,
-        ifTrue: 'barrier dismissible',
-        ifFalse: 'barrier not dismissible',
-      ))
+      ..add(DiagnosticsProperty<FlTooltipEntryBarrier>('barrier', barrier))
       ..add(DiagnosticsProperty<FlTooltipDismissOptions>(
         'dismissOptions',
         dismissOptions,
@@ -229,4 +201,59 @@ class FlTooltipEntryOptions with Diagnosticable {
         ifFalse: 'hide when unlinked',
       ));
   }
+}
+
+@immutable
+class FlTooltipEntryBarrier with Diagnosticable {
+  const FlTooltipEntryBarrier({
+    this.color,
+    this.dismissible = true,
+    this.builder = _defaultBarrierBuilder,
+  });
+
+  /// {@macro fl_tooltip.FlTooltipTheme.barrierColor}
+  final Color? color;
+
+  final bool dismissible;
+
+  final BarrierBuilder builder;
+
+  static Widget _defaultBarrierBuilder(BuildContext context, Color skrimColor) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints.expand(),
+      child: ColoredBox(color: skrimColor),
+    );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty<Color>('color', color))
+      ..add(DiagnosticsProperty<BarrierBuilder>(
+        'builder',
+        builder,
+      ))
+      ..add(FlagProperty(
+        'dismissible',
+        value: dismissible,
+        ifTrue: 'barrier dismissible',
+        ifFalse: 'barrier not dismissible',
+      ));
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FlTooltipEntryBarrier &&
+          other.color == color &&
+          other.builder == builder &&
+          other.dismissible == dismissible;
+
+  @override
+  int get hashCode => Object.hashAll([
+        color,
+        builder,
+        dismissible,
+      ]);
 }
