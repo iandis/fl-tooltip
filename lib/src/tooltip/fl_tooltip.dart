@@ -150,6 +150,14 @@ class FlTooltipState extends State<FlTooltip>
     }
   }
 
+  void addAnimationStatusListener(AnimationStatusListener listener) {
+    _animationController.addStatusListener(listener);
+  }
+
+  void removeAnimationStatusListener(AnimationStatusListener listener) {
+    _animationController.removeStatusListener(listener);
+  }
+
   Future<void> showTooltip() async {
     if (!isShowing) {
       _createOverlayEntry();
