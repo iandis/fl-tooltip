@@ -201,6 +201,29 @@ class FlTooltipEntry extends StatelessWidget {
               ),
             ),
           ),
+          GestureDetector(
+            onTap: effectiveDismissOptions.whenContentTapped
+              ? onDismissTooltip
+              : null,
+            child: _SingleChildTooltip(
+              boxPosition: boxPosition,
+              alignment: options.alignment,
+              direction: options.direction,
+              alternativeDirections: options.alternativeDirections,
+              margin: effectiveMargin,
+              edgePadding: effectiveEdgePadding,
+              position: options.position,
+              borderRadius: effectiveBorderRadius,
+              tailBaseWidth: effectiveTailBaseWidth,
+              tailLength: effectiveTailLength,
+              tailBuilder: effectiveTailBuilder,
+              backgroundColor: effectiveBackgroundColor,
+              textDirection: effectiveTextDirection,
+              shadow: effectiveShadow,
+              elevation: effectiveElevation,
+              child: contentWidget,
+            ),
+          ),
         ],
       );
     }
