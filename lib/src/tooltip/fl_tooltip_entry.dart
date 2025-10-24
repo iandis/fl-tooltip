@@ -183,15 +183,15 @@ class FlTooltipEntry extends StatelessWidget {
             behavior: options.barrier!.dismissible
                 ? HitTestBehavior.translucent
                 : HitTestBehavior.deferToChild,
-            onTap: effectiveDismissOptions.whenBarrierTapped
+            onTap: options.barrier!.dismissible && effectiveDismissOptions.whenBarrierTapped
                 ? onDismissTooltip
                 : null,
             onHorizontalDragStart:
-                effectiveDismissOptions.whenBarrierScrolledHorizontally
+                options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledHorizontally
                     ? (_) => onDismissTooltip()
                     : null,
             onVerticalDragStart:
-                effectiveDismissOptions.whenBarrierScrolledVertically
+                options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledVertically
                     ? (_) => onDismissTooltip()
                     : null,
             child: Builder(
@@ -202,7 +202,7 @@ class FlTooltipEntry extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: effectiveDismissOptions.whenContentTapped
+            onTap: options.barrier!.dismissible && effectiveDismissOptions.whenContentTapped
               ? onDismissTooltip
               : null,
             child: _SingleChildTooltip(
