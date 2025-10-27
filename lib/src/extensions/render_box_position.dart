@@ -7,28 +7,30 @@ class RenderBoxPosition with Diagnosticable {
     required this.size,
   });
 
+  static (Offset center, Offset topLeft) _getOffsets(RenderBox box, Size size) {
+    final Offset centerOffset = box.localToGlobal(
+      size.center(Offset.zero),
+    );
+    final Offset topLeftOffset = Offset(
+      -centerOffset.dx + size.width / 2,
+      -centerOffset.dy + size.height / 2,
+    );
+    return (centerOffset, topLeftOffset);
+  }
+
   factory RenderBoxPosition._fromRenderBox(RenderBox renderBox) {
     final Size size = renderBox.size;
-    final Offset offset = renderBox.localToGlobal(Offset.zero);
-    final Rect rect = offset & size;
+    final (Offset centerOffset, Offset topLeftOffset) = _getOffsets(renderBox, size);
     return RenderBoxPosition._(
-      topLeftOffset: offset,
-      centerOffset: rect.center,
+      topLeftOffset: topLeftOffset,
+      centerOffset: centerOffset,
       size: size,
     );
   }
 
   factory RenderBoxPosition._fromRenderBoxDryLayout(RenderBox renderBox) {
-    final Size size = renderBox.getDryLayout(
-      const BoxConstraints.tightForFinite(),
-    );
-    final Offset centerOffset = renderBox.localToGlobal(
-      renderBox.size.center(Offset.zero),
-    );
-    final Offset topLeftOffset = Offset(
-      -centerOffset.dx + renderBox.size.width / 2,
-      -centerOffset.dy + renderBox.size.height / 2,
-    );
+    final Size size = renderBox.getDryLayout(const BoxConstraints.tightForFinite());
+    final (Offset centerOffset, Offset topLeftOffset) = _getOffsets(renderBox, size);
     return RenderBoxPosition._(
       topLeftOffset: topLeftOffset,
       centerOffset: centerOffset,
