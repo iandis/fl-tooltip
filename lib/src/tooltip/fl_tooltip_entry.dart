@@ -79,132 +79,72 @@ class FlTooltipEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RenderBoxPosition? position =
-        options.useDryLayout ? targetKey.dryBoxPosition : targetKey.boxPosition;
-    final RenderBoxPosition boxPosition = position ?? RenderBoxPosition.zero;
+    // We need LayoutBuilder to trigger rebuilds when the available space change.
+    // This is important to keep [RenderBoxPosition] updated.
+    return LayoutBuilder(
+      builder: (_, __) {
+        final RenderBoxPosition? position = options.useDryLayout ? targetKey.dryBoxPosition : targetKey.boxPosition;
+        final RenderBoxPosition boxPosition = position ?? RenderBoxPosition.zero;
 
-    final FlTooltipThemeData? flTooltipTheme = FlTooltipTheme.maybeOf(context);
+        final FlTooltipThemeData? flTooltipTheme = FlTooltipTheme.maybeOf(context);
 
-    final EdgeInsetsGeometry effectiveMargin = options.margin ??
-        flTooltipTheme?.margin ??
-        FlTooltipThemeData._defaultMargin;
+        final EdgeInsetsGeometry effectiveMargin =
+            options.margin ?? flTooltipTheme?.margin ?? FlTooltipThemeData._defaultMargin;
 
-    final EdgeInsetsGeometry effectiveEdgePadding =
-        options.edgePadding ?? flTooltipTheme?.edgePadding ?? EdgeInsets.zero;
+        final EdgeInsetsGeometry effectiveEdgePadding =
+            options.edgePadding ?? flTooltipTheme?.edgePadding ?? EdgeInsets.zero;
 
-    final EdgeInsetsGeometry effectiveContentPadding = options.contentPadding ??
-        flTooltipTheme?.contentPadding ??
-        FlTooltipThemeData._defaultContentPadding;
+        final EdgeInsetsGeometry effectiveContentPadding =
+            options.contentPadding ?? flTooltipTheme?.contentPadding ?? FlTooltipThemeData._defaultContentPadding;
 
-    final Color effectiveBarrierColor = options.barrier?.color ??
-        flTooltipTheme?.barrierColor ??
-        FlTooltipThemeData._defaultBarrierColor;
+        final Color effectiveBarrierColor =
+            options.barrier?.color ?? flTooltipTheme?.barrierColor ?? FlTooltipThemeData._defaultBarrierColor;
 
-    final Color effectiveBackgroundColor = options.backgroundColor ??
-        flTooltipTheme?.backgroundColor ??
-        FlTooltipThemeData._defaultBackgroundColor;
+        final Color effectiveBackgroundColor =
+            options.backgroundColor ?? flTooltipTheme?.backgroundColor ?? FlTooltipThemeData._defaultBackgroundColor;
 
-    final BorderRadiusGeometry effectiveBorderRadius = options.borderRadius ??
-        flTooltipTheme?.borderRadius ??
-        FlTooltipThemeData._defaultBorderRadius;
+        final BorderRadiusGeometry effectiveBorderRadius =
+            options.borderRadius ?? flTooltipTheme?.borderRadius ?? FlTooltipThemeData._defaultBorderRadius;
 
-    final Shadow effectiveShadow = options.shadow ??
-        flTooltipTheme?.shadow ??
-        FlTooltipThemeData._defaultShadow;
+        final Shadow effectiveShadow = options.shadow ?? flTooltipTheme?.shadow ?? FlTooltipThemeData._defaultShadow;
 
-    final TextDirection effectiveTextDirection = options.textDirection ??
-        Directionality.maybeOf(context) ??
-        TextDirection.ltr;
+        final TextDirection effectiveTextDirection =
+            options.textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
-    final double effectiveElevation = options.elevation ??
-        flTooltipTheme?.elevation ??
-        FlTooltipThemeData._defaultElevation;
+        final double effectiveElevation =
+            options.elevation ?? flTooltipTheme?.elevation ?? FlTooltipThemeData._defaultElevation;
 
-    final double effectiveTailLength = options.tailLength ??
-        flTooltipTheme?.tailLength ??
-        FlTooltipThemeData._defaultTailLength;
+        final double effectiveTailLength =
+            options.tailLength ?? flTooltipTheme?.tailLength ?? FlTooltipThemeData._defaultTailLength;
 
-    final double effectiveTailBaseWidth = options.tailBaseWidth ??
-        flTooltipTheme?.tailBaseWidth ??
-        FlTooltipThemeData._defaultTailBaseWidth;
+        final double effectiveTailBaseWidth =
+            options.tailBaseWidth ?? flTooltipTheme?.tailBaseWidth ?? FlTooltipThemeData._defaultTailBaseWidth;
 
-    final TailBuilder effectiveTailBuilder = options.tailBuilder ??
-        flTooltipTheme?.tailBuilder ??
-        FlTooltipThemeData.defaultTailBuilder;
+        final TailBuilder effectiveTailBuilder =
+            options.tailBuilder ?? flTooltipTheme?.tailBuilder ?? FlTooltipThemeData.defaultTailBuilder;
 
-    final FlTooltipDismissOptions effectiveDismissOptions =
-        options.dismissOptions ??
-            flTooltipTheme?.dismissOptions ??
-            FlTooltipThemeData._defaultDismissOptions;
+        final FlTooltipDismissOptions effectiveDismissOptions =
+            options.dismissOptions ?? flTooltipTheme?.dismissOptions ?? FlTooltipThemeData._defaultDismissOptions;
 
-    final Widget contentWidget;
-    if (effectiveContentPadding != EdgeInsets.zero) {
-      contentWidget = Padding(
-        padding: effectiveContentPadding,
-        child: options.content,
-      );
-    } else {
-      contentWidget = options.content;
-    }
+        final Widget contentWidget;
+        if (effectiveContentPadding != EdgeInsets.zero) {
+          contentWidget = Padding(
+            padding: effectiveContentPadding,
+            child: options.content,
+          );
+        } else {
+          contentWidget = options.content;
+        }
 
-    assert(
-      !options.alternativeDirections.contains(options.direction),
-      '`alternativeDirections` must not contain the same direction as `direction`',
-    );
+        assert(
+          !options.alternativeDirections.contains(options.direction),
+          '`alternativeDirections` must not contain the same direction as `direction`',
+        );
 
-    Widget content;
-    if (options.barrier == null) {
-      content = GestureDetector(
-        onTap:
-            effectiveDismissOptions.whenContentTapped ? onDismissTooltip : null,
-        child: _SingleChildTooltip(
-          boxPosition: boxPosition,
-          alignment: options.alignment,
-          direction: options.direction,
-          alternativeDirections: options.alternativeDirections,
-          margin: effectiveMargin,
-          edgePadding: effectiveEdgePadding,
-          position: options.position,
-          borderRadius: effectiveBorderRadius,
-          tailBaseWidth: effectiveTailBaseWidth,
-          tailLength: effectiveTailLength,
-          tailBuilder: effectiveTailBuilder,
-          backgroundColor: effectiveBackgroundColor,
-          textDirection: effectiveTextDirection,
-          shadow: effectiveShadow,
-          elevation: effectiveElevation,
-          child: contentWidget,
-        ),
-      );
-    } else {
-      content = Stack(
-        children: <Widget>[
-          GestureDetector(
-            behavior: options.barrier!.dismissible
-                ? HitTestBehavior.translucent
-                : HitTestBehavior.deferToChild,
-            onTap: options.barrier!.dismissible && effectiveDismissOptions.whenBarrierTapped
-                ? onDismissTooltip
-                : null,
-            onHorizontalDragStart:
-                options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledHorizontally
-                    ? (_) => onDismissTooltip()
-                    : null,
-            onVerticalDragStart:
-                options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledVertically
-                    ? (_) => onDismissTooltip()
-                    : null,
-            child: Builder(
-              builder: (BuildContext context) => options.barrier!.builder(
-                context,
-                effectiveBarrierColor,
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: options.barrier!.dismissible && effectiveDismissOptions.whenContentTapped
-              ? onDismissTooltip
-              : null,
+        Widget content;
+        if (options.barrier == null) {
+          content = GestureDetector(
+            onTap: effectiveDismissOptions.whenContentTapped ? onDismissTooltip : null,
             child: _SingleChildTooltip(
               boxPosition: boxPosition,
               alignment: options.alignment,
@@ -223,44 +163,89 @@ class FlTooltipEntry extends StatelessWidget {
               elevation: effectiveElevation,
               child: contentWidget,
             ),
-          ),
-        ],
-      );
-    }
+          );
+        } else {
+          content = Stack(
+            children: <Widget>[
+              GestureDetector(
+                behavior: options.barrier!.dismissible ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+                onTap:
+                    options.barrier!.dismissible && effectiveDismissOptions.whenBarrierTapped ? onDismissTooltip : null,
+                onHorizontalDragStart:
+                    options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledHorizontally
+                        ? (_) => onDismissTooltip()
+                        : null,
+                onVerticalDragStart:
+                    options.barrier!.dismissible && effectiveDismissOptions.whenBarrierScrolledVertically
+                        ? (_) => onDismissTooltip()
+                        : null,
+                child: Builder(
+                  builder: (BuildContext context) => options.barrier!.builder(
+                    context,
+                    effectiveBarrierColor,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap:
+                    options.barrier!.dismissible && effectiveDismissOptions.whenContentTapped ? onDismissTooltip : null,
+                child: _SingleChildTooltip(
+                  boxPosition: boxPosition,
+                  alignment: options.alignment,
+                  direction: options.direction,
+                  alternativeDirections: options.alternativeDirections,
+                  margin: effectiveMargin,
+                  edgePadding: effectiveEdgePadding,
+                  position: options.position,
+                  borderRadius: effectiveBorderRadius,
+                  tailBaseWidth: effectiveTailBaseWidth,
+                  tailLength: effectiveTailLength,
+                  tailBuilder: effectiveTailBuilder,
+                  backgroundColor: effectiveBackgroundColor,
+                  textDirection: effectiveTextDirection,
+                  shadow: effectiveShadow,
+                  elevation: effectiveElevation,
+                  child: contentWidget,
+                ),
+              ),
+            ],
+          );
+        }
 
-    final Animation<double>? animation = this.animation;
-    if (animation != null) {
-      final FlTooltipTransitionsBuilder effectiveTransitionsBuilder =
-          options.transitionsBuilder ??
-              FlTooltipEntryOptions._effectiveTransitionsBuilderOf(context);
-      content = DualTransitionBuilder(
-        animation: animation,
-        forwardBuilder: effectiveTransitionsBuilder.buildTransitions,
-        reverseBuilder: effectiveTransitionsBuilder.buildReverseTransitions,
-        child: content,
-      );
-    }
+        final Animation<double>? animation = this.animation;
+        if (animation != null) {
+          final FlTooltipTransitionsBuilder effectiveTransitionsBuilder =
+              options.transitionsBuilder ?? FlTooltipEntryOptions._effectiveTransitionsBuilderOf(context);
+          content = DualTransitionBuilder(
+            animation: animation,
+            forwardBuilder: effectiveTransitionsBuilder.buildTransitions,
+            reverseBuilder: effectiveTransitionsBuilder.buildReverseTransitions,
+            child: content,
+          );
+        }
 
-    final LayerLink? link = targetKey.currentState?._link;
-    assert(() {
-      if (link == null) {
-        throw FlutterError.fromParts(<DiagnosticsNode>[
-          ErrorSummary('No link found for the tooltip target.'),
-          ErrorDescription(
-            'This might be a bug in the library.\n'
-            'Please file an issue at https://github.com/iandis/fl_tooltip/issues/new '
-            'with the reproducible code sample.',
-          ),
-        ]);
-      }
-      return true;
-    }());
+        final LayerLink? link = targetKey.currentState?._link;
+        assert(() {
+          if (link == null) {
+            throw FlutterError.fromParts(<DiagnosticsNode>[
+              ErrorSummary('No link found for the tooltip target.'),
+              ErrorDescription(
+                'This might be a bug in the library.\n'
+                'Please file an issue at https://github.com/iandis/fl_tooltip/issues/new '
+                'with the reproducible code sample.',
+              ),
+            ]);
+          }
+          return true;
+        }());
 
-    return CompositedTransformFollower(
-      link: link!,
-      showWhenUnlinked: options.showWhenUnlinked,
-      offset: boxPosition.topLeftOffset,
-      child: content,
+        return CompositedTransformFollower(
+          link: link!,
+          showWhenUnlinked: options.showWhenUnlinked,
+          offset: boxPosition.topLeftOffset,
+          child: content,
+        );
+      },
     );
   }
 }
