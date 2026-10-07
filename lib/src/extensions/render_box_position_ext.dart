@@ -1,6 +1,7 @@
 part of extensions;
 
 extension BuildContextExt on BuildContext {
+  /// Where this context's [RenderBox] is, at the size it's laid out at.
   RenderBoxPosition? get boxPosition {
     assert(!debugDoingBuild);
     assert(!(this as Element).debugIsDefunct);
@@ -10,6 +11,8 @@ extension BuildContextExt on BuildContext {
     return RenderBoxPosition._fromRenderBox(renderBox);
   }
 
+  /// Where this context's [RenderBox] is, at its natural size: the size it would be with the room its parent gives it
+  /// (its own constraints, loosened), without being stretched to fill it.
   RenderBoxPosition? get dryBoxPosition {
     assert(!debugDoingBuild);
     assert(!(this as Element).debugIsDefunct);

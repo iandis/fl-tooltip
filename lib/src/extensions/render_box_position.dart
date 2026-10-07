@@ -29,7 +29,11 @@ class RenderBoxPosition with Diagnosticable {
   }
 
   factory RenderBoxPosition._fromRenderBoxDryLayout(RenderBox renderBox) {
-    final Size size = renderBox.getDryLayout(const BoxConstraints.tightForFinite());
+    // The size the box would be with the room its parent gives it, without being stretched to fill it: its own
+    // constraints, loosened. Unbounded constraints would make a box that fills the room it's given (e.g. a `Row` with
+    // an `Expanded` child, a `TextField`) throw, and would measure a text that wraps or is cut short as one line,
+    // wider than its box.
+    final Size size = renderBox.getDryLayout(renderBox.constraints.loosen());
     final (Offset centerOffset, Offset topLeftOffset) = _getOffsets(renderBox, size);
     return RenderBoxPosition._(
       topLeftOffset: topLeftOffset,

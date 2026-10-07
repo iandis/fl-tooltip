@@ -63,6 +63,7 @@ part 'fl_tooltip_transitions_builder.dart';
 part 'fl_tooltip_dismiss_options.dart';
 part 'fl_tooltip_entry.dart';
 part 'fl_tooltip_entry_options.dart';
+part 'fl_tooltip_barrier.dart';
 
 typedef FlTooltipKey = GlobalKey<FlTooltipState>;
 

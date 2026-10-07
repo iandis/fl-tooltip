@@ -20,7 +20,8 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
     super.child,
   });
 
-  final RenderBoxPosition boxPosition;
+  /// Where the target is. The tooltip is laid out again whenever it changes, without this widget being rebuilt.
+  final ValueListenable<RenderBoxPosition> boxPosition;
   final Alignment alignment;
   final AxisDirection direction;
   final Set<AxisDirection> alternativeDirections;
@@ -63,7 +64,7 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
     _RenderSingleChildTooltip renderObject,
   ) {
     renderObject
-      ..boxPosition = boxPosition
+      ..boxPositionListenable = boxPosition
       ..alignment = alignment
       ..direction = direction
       ..alternativeDirections = alternativeDirections
@@ -83,7 +84,7 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<RenderBoxPosition>(
+    properties.add(DiagnosticsProperty<ValueListenable<RenderBoxPosition>>(
       'boxPosition',
       boxPosition,
     ));
@@ -119,7 +120,7 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
 
 class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
   _RenderSingleChildTooltip({
-    required super.boxPosition,
+    required ValueListenable<RenderBoxPosition> boxPosition,
     super.alignment,
     required AxisDirection direction,
     required Set<AxisDirection> alternativeDirections,
@@ -149,7 +150,36 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
         _textDirection = textDirection,
         _backgroundColor = backgroundColor,
         _shadow = shadow,
-        _elevation = elevation;
+        _elevation = elevation,
+        _boxPositionListenable = boxPosition,
+        super(boxPosition: boxPosition.value);
+
+  ValueListenable<RenderBoxPosition> get boxPositionListenable => _boxPositionListenable;
+  ValueListenable<RenderBoxPosition> _boxPositionListenable;
+  set boxPositionListenable(ValueListenable<RenderBoxPosition> value) {
+    if (_boxPositionListenable == value) return;
+    if (attached) _boxPositionListenable.removeListener(_updateBoxPosition);
+    _boxPositionListenable = value;
+    if (attached) _boxPositionListenable.addListener(_updateBoxPosition);
+    _updateBoxPosition();
+  }
+
+  // Setting [boxPosition] lays the tooltip out again, which only places it again: the child's constraints don't depend
+  // on where the target is (see [computeConstraints]), so the child itself isn't laid out again.
+  void _updateBoxPosition() => boxPosition = _boxPositionListenable.value;
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _boxPositionListenable.addListener(_updateBoxPosition);
+    _updateBoxPosition();
+  }
+
+  @override
+  void detach() {
+    _boxPositionListenable.removeListener(_updateBoxPosition);
+    super.detach();
+  }
 
   AxisDirection _resolvedDirection;
   AxisDirection get direction => _direction;
