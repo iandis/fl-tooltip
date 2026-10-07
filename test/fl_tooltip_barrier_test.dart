@@ -16,8 +16,7 @@ FlTooltipEntryOptions _spotlightOptions(
   return FlTooltipEntryOptions(
     useDryLayout: false,
     // Above the target, clear of the spotlight.
-    alignment: Alignment.topCenter,
-    direction: AxisDirection.up,
+    positionOptions: const {FlTooltipPosition(direction: AxisDirection.up, alignment: Alignment.topCenter)},
     barrier: FlTooltipEntryBarrier(
       color: _barrierColor,
       dismissible: dismissible,

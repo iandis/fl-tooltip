@@ -64,6 +64,7 @@ class FlTooltipEntry extends StatefulWidget {
     required FlTooltipEntryOptions options,
     Animation<double>? animation,
   }) {
+    _checkPositionOptionsNotEmpty(options.positionOptions);
     final FlTooltipOverlayEntry entry = FlTooltipOverlayEntry();
     final OverlayEntry overlayEntry = OverlayEntry(
       builder: (_) => FlTooltipEntry(
@@ -209,10 +210,11 @@ class _FlTooltipEntryState extends State<FlTooltipEntry> {
       contentWidget = options.content;
     }
 
-    assert(
-      !options.alternativeDirections.contains(options.direction),
-      '`alternativeDirections` must not contain the same direction as `direction`',
-    );
+    // An empty non-const set gets past [FlTooltipEntryOptions]'s own check (e.g. options changed while the tooltip
+    // shows), and a set of non-const positions can hold the same one twice.
+    _checkPositionOptionsNotEmpty(options.positionOptions);
+    assert(_debugReportDuplicatePositions(options.positionOptions));
+    final Set<FlTooltipPosition> positionOptions = _deduplicatePositions(options.positionOptions);
 
     final FlTooltipEntryBarrier? barrier = options.barrier;
 
@@ -228,12 +230,9 @@ class _FlTooltipEntryState extends State<FlTooltipEntry> {
             : null,
         child: _SingleChildTooltip(
           boxPosition: _boxPosition,
-          alignment: options.alignment,
-          direction: options.direction,
-          alternativeDirections: options.alternativeDirections,
+          positionOptions: positionOptions,
           margin: effectiveMargin,
           edgePadding: effectiveEdgePadding,
-          position: options.position,
           borderRadius: effectiveBorderRadius,
           tailBaseWidth: effectiveTailBaseWidth,
           tailLength: effectiveTailLength,

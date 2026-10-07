@@ -15,14 +15,13 @@ typedef BarrierBuilder = Widget Function(
 class FlTooltipEntryOptions with Diagnosticable {
   const FlTooltipEntryOptions({
     this.useDryLayout = false,
-    this.alignment = Alignment.center,
-    this.direction = AxisDirection.down,
-    this.alternativeDirections = const <AxisDirection>{},
+    this.positionOptions = const <FlTooltipPosition>{
+      FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.center),
+    },
     this.transitionsBuilder,
     this.margin,
     this.contentPadding,
     this.edgePadding,
-    this.position = 0.0,
     this.elevation,
     this.borderRadius,
     this.tailLength,
@@ -35,7 +34,7 @@ class FlTooltipEntryOptions with Diagnosticable {
     this.shadow,
     this.showWhenUnlinked = false,
     required this.content,
-  });
+  }) : assert(positionOptions != const <FlTooltipPosition>{}, '`positionOptions` must not be empty');
 
   /// Whether the tooltip points at the target's natural size instead of the size the target is laid out at.
   ///
@@ -67,14 +66,51 @@ class FlTooltipEntryOptions with Diagnosticable {
   /// For a target that isn't stretched (e.g. an [Icon], a fixed-size button), both give the same anchor.
   final bool useDryLayout;
 
-  final Alignment alignment;
-
-  final AxisDirection direction;
-
-  /// Defines alternatives for [direction] when the tooltip cannot fit its content
-  /// given the constraints of the parent widget. This will fallback to [direction]
-  /// when none of the alternatives can fit.
-  final Set<AxisDirection> alternativeDirections;
+  /// Where the tooltip may go around its target, in order of preference. Must not be empty: showing the tooltip
+  /// throws otherwise. A position that is the same as an earlier one, by value, is left out, both when placing the
+  /// tooltip and when comparing two [FlTooltipEntryOptions]. Debug mode also reports it (see [FlTooltipPosition] on
+  /// equality).
+  ///
+  /// The tooltip goes to the first one it fits in. It fits in one when, kept inside the [Overlay]'s edges (less
+  /// [margin] and [edgePadding]), it doesn't have to be pushed back over the point it points at
+  /// ([FlTooltipPosition.alignment]). When it fits in none, it goes to the first one, kept inside the [Overlay]'s edges
+  /// as far as it can be. Each one has its own [FlTooltipPosition.alignment] and [FlTooltipPosition.position], so the
+  /// tooltip can point at a different point of the target on each side.
+  ///
+  /// The tooltip is placed again whenever the target moves, so it can switch to another one while it shows (e.g. while
+  /// the target scrolls towards the overlay's edge).
+  ///
+  /// Use a set literal (`{...}`), which keeps the order it's written in. Defaults to below the target's center:
+  /// `{FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.center)}`.
+  ///
+  /// For example, above the target, or below it when there's no room above:
+  ///
+  /// ```dart
+  /// positionOptions: const {
+  ///   FlTooltipPosition(direction: AxisDirection.up, alignment: Alignment.topCenter),
+  ///   FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.bottomCenter),
+  /// },
+  /// ```
+  ///
+  /// To the right of the target, else to its left, else below it:
+  ///
+  /// ```dart
+  /// positionOptions: const {
+  ///   FlTooltipPosition(direction: AxisDirection.right, alignment: Alignment.centerRight),
+  ///   FlTooltipPosition(direction: AxisDirection.left, alignment: Alignment.centerLeft),
+  ///   FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.bottomCenter),
+  /// },
+  /// ```
+  ///
+  /// Below the target, hanging to the right of the middle of its bottom edge, as with a menu opened from the target's
+  /// left edge:
+  ///
+  /// ```dart
+  /// positionOptions: const {
+  ///   FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.bottomCenter, position: 1.0),
+  /// },
+  /// ```
+  final Set<FlTooltipPosition> positionOptions;
 
   final FlTooltipTransitionsBuilder? transitionsBuilder;
 
@@ -86,18 +122,6 @@ class FlTooltipEntryOptions with Diagnosticable {
 
   /// The padding applied to the Tooltip's [BoxConstraints].
   final EdgeInsetsGeometry? edgePadding;
-
-  /// {@template fl_tooltip.FlTooltipEntryOptions.position}
-  /// The position of [content] along the tail's axis.
-  /// It ranges from -1.0 to 1.0, where 0.0 is the center.
-  ///
-  /// When [direction] is vertical, the greater [position] value is,
-  /// the more [content] is positioned to the right.
-  ///
-  /// When [direction] is horizontal, the greater [position] value is,
-  /// the more [content] is positioned to the bottom.
-  /// {@endtemplate}
-  final double position;
 
   final double? elevation;
 
@@ -127,8 +151,7 @@ class FlTooltipEntryOptions with Diagnosticable {
   /// to get the quadrant of the tooltip. It is then layed out with those
   /// quadrant constraints limiting its size.
   ///
-  /// Note that [direction] is not the final [AxisDirection]
-  /// but may be placed opposite.
+  /// Note that the tooltip may not go to the first of [positionOptions]: it goes to the first one it fits in.
   final Widget content;
 
   static FlTooltipTransitionsBuilder _effectiveTransitionsBuilderOf(
@@ -141,14 +164,12 @@ class FlTooltipEntryOptions with Diagnosticable {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is FlTooltipEntryOptions &&
-          other.alignment == alignment &&
-          other.direction == direction &&
-          setEquals(other.alternativeDirections, alternativeDirections) &&
+          other.useDryLayout == useDryLayout &&
+          _positionOptionsEqual(other.positionOptions, positionOptions) &&
           other.transitionsBuilder == transitionsBuilder &&
           other.margin == margin &&
           other.contentPadding == contentPadding &&
           other.edgePadding == edgePadding &&
-          other.position == position &&
           other.elevation == elevation &&
           other.borderRadius == borderRadius &&
           other.tailLength == tailLength &&
@@ -163,14 +184,12 @@ class FlTooltipEntryOptions with Diagnosticable {
 
   @override
   int get hashCode => Object.hashAll([
-        alignment,
-        direction,
-        alternativeDirections,
+        useDryLayout,
+        _positionOptionsHash(positionOptions),
         transitionsBuilder,
         margin,
         contentPadding,
         edgePadding,
-        position,
         elevation,
         borderRadius,
         tailLength,
@@ -188,12 +207,8 @@ class FlTooltipEntryOptions with Diagnosticable {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty<Alignment>('alignment', alignment))
-      ..add(DiagnosticsProperty<AxisDirection>('direction', direction))
-      ..add(DiagnosticsProperty<Set<AxisDirection>>(
-        'alternativeDirections',
-        alternativeDirections,
-      ))
+      ..add(FlagProperty('useDryLayout', value: useDryLayout, ifTrue: 'dry layout'))
+      ..add(IterableProperty<FlTooltipPosition>('positionOptions', positionOptions))
       ..add(DiagnosticsProperty<FlTooltipTransitionsBuilder>(
         'transitionsBuilder',
         transitionsBuilder,
@@ -204,7 +219,6 @@ class FlTooltipEntryOptions with Diagnosticable {
         contentPadding,
       ))
       ..add(DiagnosticsProperty<EdgeInsetsGeometry>('edgePadding', edgePadding))
-      ..add(DoubleProperty('position', position))
       ..add(DoubleProperty('elevation', elevation))
       ..add(DiagnosticsProperty<BorderRadiusGeometry>(
         'borderRadius',

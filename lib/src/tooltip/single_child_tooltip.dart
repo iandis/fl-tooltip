@@ -3,12 +3,9 @@ part of fl_tooltip;
 class _SingleChildTooltip extends SingleChildRenderObjectWidget {
   const _SingleChildTooltip({
     required this.boxPosition,
-    required this.alignment,
-    required this.direction,
-    required this.alternativeDirections,
+    required this.positionOptions,
     required this.margin,
     required this.edgePadding,
-    required this.position,
     required this.borderRadius,
     required this.tailLength,
     required this.tailBaseWidth,
@@ -22,12 +19,9 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
 
   /// Where the target is. The tooltip is laid out again whenever it changes, without this widget being rebuilt.
   final ValueListenable<RenderBoxPosition> boxPosition;
-  final Alignment alignment;
-  final AxisDirection direction;
-  final Set<AxisDirection> alternativeDirections;
+  final Set<FlTooltipPosition> positionOptions;
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry edgePadding;
-  final double position;
   final BorderRadiusGeometry borderRadius;
   final double tailLength;
   final double tailBaseWidth;
@@ -41,12 +35,9 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
   _RenderSingleChildTooltip createRenderObject(BuildContext context) {
     return _RenderSingleChildTooltip(
       boxPosition: boxPosition,
-      alignment: alignment,
-      direction: direction,
-      alternativeDirections: alternativeDirections,
+      positionOptions: positionOptions,
       margin: margin,
       edgePadding: edgePadding,
-      position: position,
       borderRadius: borderRadius,
       tailLength: tailLength,
       tailBaseWidth: tailBaseWidth,
@@ -65,12 +56,9 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
   ) {
     renderObject
       ..boxPositionListenable = boxPosition
-      ..alignment = alignment
-      ..direction = direction
-      ..alternativeDirections = alternativeDirections
+      ..positionOptions = positionOptions
       ..margin = margin
       ..edgePadding = edgePadding
-      ..position = position
       ..borderRadius = borderRadius
       ..tailLength = tailLength
       ..tailBaseWidth = tailBaseWidth
@@ -88,18 +76,12 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
       'boxPosition',
       boxPosition,
     ));
-    properties.add(DiagnosticsProperty<Alignment>('alignment', alignment));
-    properties.add(DiagnosticsProperty<AxisDirection>('direction', direction));
-    properties.add(DiagnosticsProperty<Set<AxisDirection>>(
-      'alternativeDirections',
-      alternativeDirections,
-    ));
+    properties.add(IterableProperty<FlTooltipPosition>('positionOptions', positionOptions));
     properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('margin', margin));
     properties.add(DiagnosticsProperty<EdgeInsetsGeometry>(
       'edgePadding',
       edgePadding,
     ));
-    properties.add(DoubleProperty('position', position));
     properties.add(
       DiagnosticsProperty<BorderRadiusGeometry>('borderRadius', borderRadius),
     );
@@ -121,12 +103,9 @@ class _SingleChildTooltip extends SingleChildRenderObjectWidget {
 class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
   _RenderSingleChildTooltip({
     required ValueListenable<RenderBoxPosition> boxPosition,
-    super.alignment,
-    required AxisDirection direction,
-    required Set<AxisDirection> alternativeDirections,
+    required Set<FlTooltipPosition> positionOptions,
     required EdgeInsetsGeometry margin,
     required EdgeInsetsGeometry edgePadding,
-    required double position,
     required BorderRadiusGeometry borderRadius,
     required double tailLength,
     required double tailBaseWidth,
@@ -135,14 +114,13 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     required Color backgroundColor,
     required Shadow shadow,
     required double elevation,
-  })  : _direction = direction,
-        _resolvedDirection = direction,
-        _alternativeDirections = alternativeDirections,
+  })  : assert(positionOptions.isNotEmpty, '`positionOptions` must not be empty'),
+        _positionOptions = positionOptions,
+        _resolvedPosition = positionOptions.first,
         _margin = margin,
         _resolvedMargin = margin.resolve(textDirection),
         _edgePadding = edgePadding,
         _resolvedEdgePadding = edgePadding.resolve(textDirection),
-        _position = position,
         _borderRadius = borderRadius,
         _tailLength = tailLength,
         _tailBaseWidth = tailBaseWidth,
@@ -181,22 +159,19 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     super.detach();
   }
 
-  AxisDirection _resolvedDirection;
-  AxisDirection get direction => _direction;
-  AxisDirection _direction;
-  set direction(AxisDirection value) {
-    if (_direction == value) return;
-    _direction = value;
+  /// Where the tooltip may go, in order of preference (see [FlTooltipEntryOptions.positionOptions]).
+  Set<FlTooltipPosition> get positionOptions => _positionOptions;
+  Set<FlTooltipPosition> _positionOptions;
+  set positionOptions(Set<FlTooltipPosition> value) {
+    assert(value.isNotEmpty, '`positionOptions` must not be empty');
+    if (_positionOptionsEqual(_positionOptions, value)) return;
+    _positionOptions = value;
     markNeedsLayout();
   }
 
-  Set<AxisDirection> get alternativeDirections => _alternativeDirections;
-  Set<AxisDirection> _alternativeDirections;
-  set alternativeDirections(Set<AxisDirection> value) {
-    if (_alternativeDirections == value) return;
-    _alternativeDirections = value;
-    markNeedsLayout();
-  }
+  /// The one of [positionOptions] the tooltip went to on its last layout.
+  FlTooltipPosition _resolvedPosition;
+  AxisDirection get _resolvedDirection => _resolvedPosition.direction;
 
   EdgeInsets _resolvedMargin;
   EdgeInsetsGeometry get margin => _margin;
@@ -215,14 +190,6 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     if (_edgePadding == value) return;
     _edgePadding = value;
     _resolvedEdgePadding = value.resolve(textDirection);
-    markNeedsLayout();
-  }
-
-  double get position => _position;
-  double _position;
-  set position(double value) {
-    if (_position == value) return;
-    _position = value;
     markNeedsLayout();
   }
 
@@ -307,115 +274,105 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     }
   }
 
-  (Offset, AxisDirection) _resolveChildOffsetAndAxisDirection(Size childSize) {
-    AxisDirection? resolvedDirection;
-    Offset? resolvedChildOffset;
-    final List<AxisDirection> directionsToResolve = {
-      direction,
-      ...alternativeDirections,
-    }.toList();
-    while (directionsToResolve.isNotEmpty) {
-      final double childXOffset;
-      final double childYOffset;
-      final AxisDirection direction = directionsToResolve.removeAt(0);
-      final double additionalOffset = _getTailMargin(direction) + tailLength;
-      final Size childSizeWithTail;
-
-      // Alignment Modifier:
-      // dx = 0.5 x alignmentX x target width
-      // dy = 0.5 x alignmentY x target height
-      switch (direction) {
-        // Offset:
-        // dx = target center dx + (-0.5 x child width) + xAlignmentModifier
-        // dy = target center dy + (-1.0 x child height) + yAlignmentModifier
-        case AxisDirection.up:
-
-        // Offset:
-        // dx = target center dx + (-0.5 x child width) + xAlignmentModifier
-        // child is already at the bottom, no need to calculate its height,
-        // hence the 0.0 x child height
-        // dy = target center dy + (0.0 x child height) + yAlignmentModifier
-        case AxisDirection.down:
-          final double childHeight = childSize.height;
-          final double childYOffsetMultiplier =
-              direction == AxisDirection.up ? -1.0 : 0.0;
-          final double additionalYOffsetMultiplier =
-              direction == AxisDirection.up ? -1.0 : 1.0;
-          final double yAdditionalOffset =
-              additionalYOffsetMultiplier * additionalOffset;
-          childXOffset = -0.5 * childSize.width;
-          childYOffset =
-              childYOffsetMultiplier * childHeight + yAdditionalOffset;
-          childSizeWithTail = Size(
-            childSize.width,
-            childSize.height + tailLength,
-          );
-        // Offset:
-        // child is already at the right, no need to calculate its width,
-        // hence the 0.0 x child width
-        // dx = target center dx + (0.0 x child width) + xAlignmentModifier
-        // dy = target center dy + (-0.5 x child height) + yAlignmentModifier
-        case AxisDirection.right:
-        // Offset:
-        // dx = target center dx + (-1.0 x child width) + xAlignmentModifier
-        // dy = target center dy + (-0.5 x child height) + yAlignmentModifier
-        case AxisDirection.left:
-          final double childWidth = childSize.width;
-          final double childXOffsetMultiplier =
-              direction == AxisDirection.right ? 0.0 : -1.0;
-          final double additionalXOffsetMultiplier =
-              direction == AxisDirection.right ? 1.0 : -1.0;
-          final double xAdditionalOffset =
-              additionalXOffsetMultiplier * additionalOffset;
-          childXOffset =
-              childXOffsetMultiplier * childWidth + xAdditionalOffset;
-          childYOffset = -0.5 * childSize.height;
-          childSizeWithTail = Size(
-            childSize.width + tailLength,
-            childSize.height,
-          );
-      }
-      // x
-      final double targetCenterDx = boxPosition.centerOffset.dx;
-      final double xAlignmentModifier =
-          0.5 * alignment.x * boxPosition.size.width;
-      final double dx = targetCenterDx + childXOffset + xAlignmentModifier;
-
-      // y
-      final double targetCenterDy = boxPosition.centerOffset.dy;
-      final double yAlignmentModifier =
-          0.5 * alignment.y * boxPosition.size.height;
-      final double dy = targetCenterDy + childYOffset + yAlignmentModifier;
-
-      final Offset alignedOffset = Offset(dx, dy);
-      final Offset translatedAlignedOffset = _computeTranslatedAlignedOffset(
-        alignedOffset: alignedOffset,
-        childSize: childSize,
-        direction: direction,
-        position: position,
-      );
-      final Offset boundedAlignedOffset = _computeBoundedAlignedOffset(
-        alignedOffset: translatedAlignedOffset,
-        childSize: childSize,
-        constraints: constraints,
-        resolvedMargin: _resolvedMargin,
-        resolvedEdgePadding: _resolvedEdgePadding,
-      );
-      final bool boundedOffsetNotCrossing = _boundedOffsetNotCrossing(
-        unboundedOffset: alignedOffset,
-        boundedOffset: boundedAlignedOffset,
-        direction: direction,
-        size: childSizeWithTail,
-      );
-
-      if (direction == this.direction || boundedOffsetNotCrossing) {
-        resolvedChildOffset = boundedAlignedOffset;
-        resolvedDirection = direction;
-        if (direction == this.direction && boundedOffsetNotCrossing) break;
-      }
+  /// Where the child goes: the first of [positionOptions] it fits in, or else the first of them (see
+  /// [FlTooltipEntryOptions.positionOptions]), and that one.
+  (Offset, FlTooltipPosition) _resolveChildOffsetAndPosition(Size childSize) {
+    (Offset, FlTooltipPosition)? fallback;
+    for (final FlTooltipPosition option in positionOptions) {
+      final (Offset offset, bool fits) = _computeChildOffset(childSize, option);
+      if (fits) return (offset, option);
+      fallback ??= (offset, option);
     }
+    return fallback!;
+  }
 
-    return (resolvedChildOffset!, resolvedDirection!);
+  /// Where the child goes with [option], kept inside the overlay's edges, and whether it fits there: whether keeping it
+  /// inside the overlay's edges didn't push it back over the point it points at.
+  (Offset, bool) _computeChildOffset(Size childSize, FlTooltipPosition option) {
+    final AxisDirection direction = option.direction;
+    final Alignment alignment = option.alignment;
+    final double childXOffset;
+    final double childYOffset;
+    final double additionalOffset = _getTailMargin(direction) + tailLength;
+    final Size childSizeWithTail;
+
+    // Alignment Modifier:
+    // dx = 0.5 x alignmentX x target width
+    // dy = 0.5 x alignmentY x target height
+    switch (direction) {
+      // Offset:
+      // dx = target center dx + (-0.5 x child width) + xAlignmentModifier
+      // dy = target center dy + (-1.0 x child height) + yAlignmentModifier
+      case AxisDirection.up:
+
+      // Offset:
+      // dx = target center dx + (-0.5 x child width) + xAlignmentModifier
+      // child is already at the bottom, no need to calculate its height,
+      // hence the 0.0 x child height
+      // dy = target center dy + (0.0 x child height) + yAlignmentModifier
+      case AxisDirection.down:
+        final double childHeight = childSize.height;
+        final double childYOffsetMultiplier = direction == AxisDirection.up ? -1.0 : 0.0;
+        final double additionalYOffsetMultiplier = direction == AxisDirection.up ? -1.0 : 1.0;
+        final double yAdditionalOffset = additionalYOffsetMultiplier * additionalOffset;
+        childXOffset = -0.5 * childSize.width;
+        childYOffset = childYOffsetMultiplier * childHeight + yAdditionalOffset;
+        childSizeWithTail = Size(
+          childSize.width,
+          childSize.height + tailLength,
+        );
+      // Offset:
+      // child is already at the right, no need to calculate its width,
+      // hence the 0.0 x child width
+      // dx = target center dx + (0.0 x child width) + xAlignmentModifier
+      // dy = target center dy + (-0.5 x child height) + yAlignmentModifier
+      case AxisDirection.right:
+      // Offset:
+      // dx = target center dx + (-1.0 x child width) + xAlignmentModifier
+      // dy = target center dy + (-0.5 x child height) + yAlignmentModifier
+      case AxisDirection.left:
+        final double childWidth = childSize.width;
+        final double childXOffsetMultiplier = direction == AxisDirection.right ? 0.0 : -1.0;
+        final double additionalXOffsetMultiplier = direction == AxisDirection.right ? 1.0 : -1.0;
+        final double xAdditionalOffset = additionalXOffsetMultiplier * additionalOffset;
+        childXOffset = childXOffsetMultiplier * childWidth + xAdditionalOffset;
+        childYOffset = -0.5 * childSize.height;
+        childSizeWithTail = Size(
+          childSize.width + tailLength,
+          childSize.height,
+        );
+    }
+    // x
+    final double targetCenterDx = boxPosition.centerOffset.dx;
+    final double xAlignmentModifier = 0.5 * alignment.x * boxPosition.size.width;
+    final double dx = targetCenterDx + childXOffset + xAlignmentModifier;
+
+    // y
+    final double targetCenterDy = boxPosition.centerOffset.dy;
+    final double yAlignmentModifier = 0.5 * alignment.y * boxPosition.size.height;
+    final double dy = targetCenterDy + childYOffset + yAlignmentModifier;
+
+    final Offset alignedOffset = Offset(dx, dy);
+    final Offset translatedAlignedOffset = _computeTranslatedAlignedOffset(
+      alignedOffset: alignedOffset,
+      childSize: childSize,
+      direction: direction,
+      position: option.position,
+    );
+    final Offset boundedAlignedOffset = _computeBoundedAlignedOffset(
+      alignedOffset: translatedAlignedOffset,
+      childSize: childSize,
+      constraints: constraints,
+      resolvedMargin: _resolvedMargin,
+      resolvedEdgePadding: _resolvedEdgePadding,
+    );
+    final bool boundedOffsetNotCrossing = _boundedOffsetNotCrossing(
+      unboundedOffset: alignedOffset,
+      boundedOffset: boundedAlignedOffset,
+      direction: direction,
+      size: childSizeWithTail,
+    );
+    return (boundedAlignedOffset, boundedOffsetNotCrossing);
   }
 
   /// This method is just to check if [boundedOffset] calculated by [_computeBoundedAlignedOffset]
@@ -444,13 +401,13 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
     assert(hasSize);
 
     final (
-      resolvedOffset,
-      resolvedDirection,
-    ) = _resolveChildOffsetAndAxisDirection(child!.size);
+      Offset resolvedOffset,
+      FlTooltipPosition resolvedPosition,
+    ) = _resolveChildOffsetAndPosition(child!.size);
 
     final BoxParentData childParentData = child!.parentData! as BoxParentData;
     childParentData.offset = resolvedOffset;
-    _resolvedDirection = resolvedDirection;
+    _resolvedPosition = resolvedPosition;
   }
 
   static Offset _computeTranslatedAlignedOffset({
@@ -585,6 +542,7 @@ class _RenderSingleChildTooltip extends RenderAlignBoxPosition {
   }
 
   Offset _getTailOffset(Rect childRect) {
+    final Alignment alignment = _resolvedPosition.alignment;
     final double xAlignmentMultiplier = -0.5 * alignment.x;
     final double yAlignmentMultiplier = -0.5 * alignment.y;
 

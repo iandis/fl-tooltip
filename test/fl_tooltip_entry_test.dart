@@ -4,16 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'tooltip_test_harness.dart';
 
-FlTooltipEntryOptions _options(
-  Widget content, {
-  FlTooltipEntryBarrier? barrier = const FlTooltipEntryBarrier(),
-  Alignment alignment = Alignment.topCenter,
-}) {
+/// Above the target, or below it when there's no room above.
+const Set<FlTooltipPosition> _aboveElseBelow = {
+  FlTooltipPosition(direction: AxisDirection.up, alignment: Alignment.topCenter),
+  FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.bottomCenter),
+};
+
+FlTooltipEntryOptions _options(Widget content, {FlTooltipEntryBarrier? barrier = const FlTooltipEntryBarrier()}) {
   return FlTooltipEntryOptions(
-    useDryLayout: false,
-    alignment: alignment,
-    direction: AxisDirection.up,
-    alternativeDirections: const {AxisDirection.down},
+    positionOptions: _aboveElseBelow,
     barrier: barrier,
     content: content,
   );
@@ -47,20 +46,15 @@ void main() {
   testWidgets('should put the tooltip on its alternative side when the target moves too close to the edge', (
     tester,
   ) async {
-    // Anchored to the target's center, so that the tooltip is above the target's center on one side and below it on
-    // the other.
-    final harness = await pumpTooltipHarness(
-      tester,
-      options: (content) => _options(content, alignment: Alignment.center),
-    );
-    expect(tester.getCenter(content).dy, lessThan(tester.getCenter(target).dy));
+    final harness = await pumpTooltipHarness(tester, options: _options);
+    expect(tester.getRect(content).bottom, lessThanOrEqualTo(tester.getRect(target).top));
 
     // The target ends up at the overlay's top edge, with no room for the tooltip above it.
     await harness.moveTargetTo(tester, const Offset(0, -255));
     await tester.pump(kFrame);
 
-    expect(tester.getCenter(content).dy, greaterThan(tester.getCenter(target).dy));
-    expect(tester.getRect(content).top, greaterThanOrEqualTo(0));
+    // Below the target's bottom edge, the alternative's own alignment, not over the target.
+    expect(tester.getRect(content).top, greaterThanOrEqualTo(tester.getRect(target).bottom));
   });
 
   testWidgets('should not rebuild the tooltip content while the target moves', (tester) async {

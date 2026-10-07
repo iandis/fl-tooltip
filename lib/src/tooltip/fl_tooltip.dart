@@ -45,6 +45,7 @@ SOFTWARE.
 library fl_tooltip;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui';
 
@@ -64,6 +65,7 @@ part 'fl_tooltip_dismiss_options.dart';
 part 'fl_tooltip_entry.dart';
 part 'fl_tooltip_entry_options.dart';
 part 'fl_tooltip_barrier.dart';
+part 'fl_tooltip_position.dart';
 
 typedef FlTooltipKey = GlobalKey<FlTooltipState>;
 
@@ -159,7 +161,16 @@ class FlTooltipState extends State<FlTooltip>
     _animationController.removeStatusListener(listener);
   }
 
-  Future<void> showTooltip() async {
+  /// Shows the tooltip.
+  ///
+  /// Throws, right away, when [FlTooltipEntryOptions.positionOptions] is empty.
+  Future<void> showTooltip() {
+    // Checked before the asynchronous part, so that it throws to the caller instead of failing the returned future.
+    _checkPositionOptionsNotEmpty(widget.options.positionOptions);
+    return _showTooltip();
+  }
+
+  Future<void> _showTooltip() async {
     if (!isShowing) {
       _createOverlayEntry();
     }
