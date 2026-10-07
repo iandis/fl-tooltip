@@ -77,6 +77,11 @@ class FlTooltipPosition with Diagnosticable {
   /// ```
   final double position;
 
+  static const FlTooltipPosition topCenter = FlTooltipPosition(direction: AxisDirection.up, alignment: Alignment.topCenter);
+  static const FlTooltipPosition bottomCenter = FlTooltipPosition(direction: AxisDirection.down, alignment: Alignment.bottomCenter);
+  static const FlTooltipPosition leftCenter = FlTooltipPosition(direction: AxisDirection.left, alignment: Alignment.centerLeft);
+  static const FlTooltipPosition rightCenter = FlTooltipPosition(direction: AxisDirection.right, alignment: Alignment.centerRight);
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
